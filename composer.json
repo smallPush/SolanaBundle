@@ -1,0 +1,6 @@
+{
+    "require": {
+        "symfony/security-bundle": "^7.3",
+        "symfony/webpack-encore-bundle": "^2.3"
+    }
+}

@@ -1,0 +1,61 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ contract.title }}{% endblock %}
+
+{% block body %}
+    <h1>{{ contract.title }}</h1>
+
+    {# Flash Messages #}
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="alert alert-{{ label }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endfor %}
+
+    <dl class="row">
+        <dt class="col-sm-3">Descripción</dt>
+        <dd class="col-sm-9">{{ contract.description|nl2br }}</dd>
+
+        <dt class="col-sm-3">Estado</dt>
+        <dd class="col-sm-9">{{ contract.status }}</dd>
+
+        <dt class="col-sm-3">Monto</dt>
+        <dd class="col-sm-9">{{ contract.amount }} SOL</dd>
+
+        <dt class="col-sm-3">Donante</dt>
+        <dd class="col-sm-9">{{ contract.donor.email }} ({{ contract.donorWallet }})</dd>
+
+        <dt class="col-sm-3">Voluntario</dt>
+        <dd class="col-sm-9">{{ contract.volunteer.email }} ({{ contract.volunteerWallet }})</dd>
+    </dl>
+
+    {# --- Botones de Acción --- #}
+    <div class="mt-4">
+        {# Botón de Validación #}
+        {% if (is_granted('ROLE_DONOR') and app.user == contract.donor and contract.status in ['pending', 'validated_volunteer']) or (is_granted('ROLE_VOLUNTEER') and app.user == contract.volunteer and contract.status in ['pending', 'validated_donor']) %}
+            <form method="post" action="{{ path('app_solana_contract_validate', {'id': contract.id}) }}" onsubmit="return confirm('¿Estás seguro de que quieres validar este contrato?');">
+                <button class="btn btn-warning">Validar Contrato</button>
+            </form>
+        {% endif %}
+
+        {# Botón para Firmar (se mostrará con JS) #}
+        {% if is_granted('ROLE_DONOR') and app.user == contract.donor and contract.status == 'ready_for_signature' %}
+             <button id="solana-sign-button"
+                     class="btn btn-success"
+                     data-to="{{ contract.volunteerWallet }}"
+                     data-amount="{{ contract.amount }}"
+                     data-node-id="{{ contract.id }}">
+                 Firmar y Ejecutar Transacción con Wallet
+             </button>
+        {% endif %}
+    </div>
+
+    <a href="{{ path('app_solana_contract_index') }}" class="btn btn-link mt-3">Volver a la lista</a>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {# Webpack Encore will automatically include app.js here thanks to the base template #}
+{% endblock %}

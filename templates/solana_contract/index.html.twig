@@ -1,0 +1,33 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Contratos de Solana{% endblock %}
+
+{% block body %}
+    <h1>Contratos de Solana</h1>
+    <a href="{{ path('app_solana_contract_new') }}" class="btn btn-primary mb-3">Crear Nuevo Contrato</a>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Título</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for contract in contracts %}
+            <tr>
+                <td>{{ contract.title }}</td>
+                <td>{{ contract.status }}</td>
+                <td>
+                    <a href="{{ path('app_solana_contract_show', {'id': contract.id}) }}" class="btn btn-sm btn-info">Ver</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="3">No se encontraron contratos.</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}
