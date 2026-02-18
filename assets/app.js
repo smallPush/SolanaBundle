@@ -1,5 +1,3 @@
-import * as solanaWeb3 from '@solana/web3.js';
-
 document.addEventListener('DOMContentLoaded', () => {
     const signButton = document.getElementById('solana-sign-button');
     if (signButton) {
@@ -15,6 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             try {
+                const solanaWeb3 = await import('@solana/web3.js');
                 const resp = await provider.connect();
                 const connection = new solanaWeb3.Connection(
                     solanaWeb3.clusterApiUrl('devnet'),
