@@ -38,4 +38,6 @@ return array(
     'Psr\\EventDispatcher\\' => array($vendorDir . '/psr/event-dispatcher/src'),
     'Psr\\Container\\' => array($vendorDir . '/psr/container/src'),
     'Psr\\Clock\\' => array($vendorDir . '/psr/clock/src'),
+    'App\\Tests\\' => array($baseDir . '/tests'),
+    'App\\' => array($baseDir . '/src'),
 );
