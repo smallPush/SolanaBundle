@@ -12,14 +12,20 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/solana/contract')]
+#[IsGranted('ROLE_USER')]
 class SolanaContractController extends AbstractController
 {
     #[Route('/', name: 'app_solana_contract_index', methods: ['GET'])]
     public function index(EntityManagerInterface $entityManager): Response
     {
+        $user = $this->getUser();
         $contracts = $entityManager
             ->getRepository(SolanaContract::class)
-            ->findAll();
+            ->createQueryBuilder('s')
+            ->where('s.author = :user OR s.donor = :user OR s.volunteer = :user')
+            ->setParameter('user', $user)
+            ->getQuery()
+            ->getResult();
 
         return $this->render('solana_contract/index.html.twig', [
             'contracts' => $contracts,
@@ -53,6 +59,7 @@ class SolanaContractController extends AbstractController
     }
 
     #[Route('/{id}', name: 'app_solana_contract_show', methods: ['GET'])]
+    #[IsGranted('VIEW', subject: 'contract')]
     public function show(SolanaContract $contract): Response
     {
         return $this->render('solana_contract/show.html.twig', [
@@ -61,7 +68,7 @@ class SolanaContractController extends AbstractController
     }
 
     #[Route('/{id}/validate', name: 'app_solana_contract_validate', methods: ['POST'])]
-    #[IsGranted('ROLE_USER')]
+    #[IsGranted('VALIDATE', subject: 'contract')]
     public function validate(SolanaContract $contract, EntityManagerInterface $entityManager): Response
     {
         $user = $this->getUser();
