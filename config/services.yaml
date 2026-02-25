@@ -1,0 +1,32 @@
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/DependencyInjection/'
+            - '../src/Entity/'
+            - '../src/Kernel.php'
+
+    # Interface aliases
+    App\Contract\Bus\CommandBusInterface: '@App\Infrastructure\Bus\SimpleCommandBus'
+    App\Contract\Bus\QueryBusInterface: '@App\Infrastructure\Bus\SimpleQueryBus'
+    App\Contract\Psr\Cache\CacheItemPoolInterface: '@App\Infrastructure\Cache\FileCacheAdapter'
+
+    # Infrastructure
+    App\Infrastructure\Bus\SimpleCommandBus:
+        arguments: ['@service_container']
+
+    App\Infrastructure\Bus\SimpleQueryBus:
+        arguments: ['@service_container']
+
+    # Make handlers public so the simple bus can locate them via container
+    App\Application\CommandHandler\:
+        resource: '../src/Application/CommandHandler/'
+        public: true
+
+    App\Application\QueryHandler\:
+        resource: '../src/Application/QueryHandler/'
+        public: true
