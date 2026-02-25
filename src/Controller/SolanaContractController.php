@@ -9,6 +9,8 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Csrf\CsrfToken;
+use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/solana/contract')]
@@ -69,8 +71,13 @@ class SolanaContractController extends AbstractController
 
     #[Route('/{id}/validate', name: 'app_solana_contract_validate', methods: ['POST'])]
     #[IsGranted('VALIDATE', subject: 'contract')]
-    public function validate(SolanaContract $contract, EntityManagerInterface $entityManager): Response
+    public function validate(SolanaContract $contract, EntityManagerInterface $entityManager, Request $request, CsrfTokenManagerInterface $csrfTokenManager): Response
     {
+        $token = new CsrfToken('validate' . $contract->getId(), $request->request->get('_token'));
+        if (!$csrfTokenManager->isTokenValid($token)) {
+            throw $this->createAccessDeniedException('Token CSRF inválido.');
+        }
+
         $user = $this->getUser();
         $status = $contract->getStatus();
         $isDonor = ($user === $contract->getDonor());
