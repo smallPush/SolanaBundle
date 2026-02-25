@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\DTO\SolanaContractSummary;
 use App\Entity\SolanaContract;
 use App\Form\SolanaContractType;
+use App\Repository\SolanaContractRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -63,9 +64,16 @@ class SolanaContractController extends AbstractController
     }
 
     #[Route('/{id}', name: 'app_solana_contract_show', methods: ['GET'])]
-    #[IsGranted('VIEW', subject: 'contract')]
-    public function show(SolanaContract $contract): Response
+    public function show(int $id, SolanaContractRepository $solanaContractRepository): Response
     {
+        $contract = $solanaContractRepository->findWithRelations($id);
+
+        if (!$contract) {
+            throw $this->createNotFoundException('Contrato no encontrado.');
+        }
+
+        $this->denyAccessUnlessGranted('VIEW', $contract);
+
         return $this->render('solana_contract/show.html.twig', [
             'contract' => $contract,
         ]);
