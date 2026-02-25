@@ -12,3 +12,8 @@
 
     <a href="{{ path('app_solana_contract_index') }}" class="btn btn-link mt-3">Volver a la lista</a>
 {% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {% include '_autocomplete_script.html.twig' %}
+{% endblock %}
