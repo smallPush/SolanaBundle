@@ -21,4 +21,18 @@ class SolanaContractRepository extends ServiceEntityRepository
         parent::__construct($registry, SolanaContract::class);
     }
 
+    public function findWithRelations(int $id): ?SolanaContract
+    {
+        return $this->createQueryBuilder('s')
+            ->leftJoin('s.author', 'a')
+            ->addSelect('a')
+            ->leftJoin('s.donor', 'd')
+            ->addSelect('d')
+            ->leftJoin('s.volunteer', 'v')
+            ->addSelect('v')
+            ->andWhere('s.id = :id')
+            ->setParameter('id', $id)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
 }
