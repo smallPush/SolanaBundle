@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\DTO\SolanaContractSummary;
 use App\Entity\SolanaContract;
 use App\Form\SolanaContractType;
 use Doctrine\ORM\EntityManagerInterface;
@@ -22,6 +23,7 @@ class SolanaContractController extends AbstractController
         $contracts = $entityManager
             ->getRepository(SolanaContract::class)
             ->createQueryBuilder('s')
+            ->select(sprintf('NEW %s(s.id, s.title, s.status)', SolanaContractSummary::class))
             ->where('s.author = :user OR s.donor = :user OR s.volunteer = :user')
             ->setParameter('user', $user)
             ->getQuery()
