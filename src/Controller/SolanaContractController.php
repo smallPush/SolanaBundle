@@ -64,6 +64,7 @@ class SolanaContractController extends AbstractController
     {
         return $this->render('solana_contract/show.html.twig', [
             'contract' => $contract,
+            'solana_network' => $_ENV['SOLANA_NETWORK'] ?? 'devnet',
         ]);
     }
 

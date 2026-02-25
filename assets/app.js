@@ -15,8 +15,9 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 const solanaWeb3 = await import('@solana/web3.js');
                 const resp = await provider.connect();
+                const network = signButton.dataset.network || 'devnet';
                 const connection = new solanaWeb3.Connection(
-                    solanaWeb3.clusterApiUrl('devnet'),
+                    solanaWeb3.clusterApiUrl(network),
                     'confirmed'
                 );
 
