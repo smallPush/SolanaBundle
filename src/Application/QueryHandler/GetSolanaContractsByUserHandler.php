@@ -6,6 +6,7 @@ use App\Application\Query\GetSolanaContractsByUserQuery;
 use App\Contract\Cqrs\QueryHandlerInterface;
 use App\Contract\Cqrs\QueryInterface;
 use App\Contract\Psr\Cache\CacheItemPoolInterface;
+use App\DTO\PaginatedResult;
 use App\DTO\SolanaContractSummary;
 use App\Entity\SolanaContract;
 use Doctrine\ORM\EntityManagerInterface;
@@ -28,26 +29,46 @@ class GetSolanaContractsByUserHandler implements QueryHandlerInterface
         }
 
         $user = $query->getUser();
-        $key = 'user_contracts_' . $user->getId();
+        $page = $query->getPage();
+        $limit = $query->getLimit();
+
+        $key = 'user_contracts_' . $user->getId() . '_' . $page . '_' . $limit;
         $cacheItem = $this->cache->getItem($key);
 
         if ($cacheItem->isHit()) {
             return $cacheItem->get();
         }
 
-        $contracts = $this->entityManager
+        $qb = $this->entityManager
             ->getRepository(SolanaContract::class)
             ->createQueryBuilder('s')
-            ->select(sprintf('NEW %s(s.id, s.title, s.status)', SolanaContractSummary::class))
             ->where('s.author = :user OR s.donor = :user OR s.volunteer = :user')
-            ->setParameter('user', $user)
+            ->setParameter('user', $user);
+
+        // Count query
+        $countQb = clone $qb;
+        $total = (int) $countQb->select('count(s.id)')->getQuery()->getSingleScalarResult();
+
+        // Data query
+        $contracts = $qb
+            ->select(sprintf('NEW %s(s.id, s.title, s.status)', SolanaContractSummary::class))
+            ->setFirstResult(($page - 1) * $limit)
+            ->setMaxResults($limit)
             ->getQuery()
             ->getResult();
 
-        $cacheItem->set($contracts);
+        $result = new PaginatedResult(
+            $contracts,
+            $total,
+            $page,
+            $limit,
+            (int) ceil($total / $limit)
+        );
+
+        $cacheItem->set($result);
         $cacheItem->expiresAfter(60);
         $this->cache->save($cacheItem);
 
-        return $contracts;
+        return $result;
     }
 }

@@ -32,9 +32,11 @@ class SolanaContractController extends AbstractController
     }
 
     #[Route('/', name: 'app_solana_contract_index', methods: ['GET'])]
-    public function index(): Response
+    public function index(Request $request): Response
     {
-        $contracts = $this->queryBus->ask(new GetSolanaContractsByUserQuery($this->getUser()));
+        $page = $request->query->getInt('page', 1);
+        $limit = 10;
+        $contracts = $this->queryBus->ask(new GetSolanaContractsByUserQuery($this->getUser(), $page, $limit));
 
         return $this->render('solana_contract/index.html.twig', [
             'contracts' => $contracts,
