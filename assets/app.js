@@ -33,12 +33,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     })
                 );
 
-                const { blockhash } = await connection.getRecentBlockhash();
+                const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
                 transaction.recentBlockhash = blockhash;
+                transaction.lastValidBlockHeight = lastValidBlockHeight;
                 transaction.feePayer = fromPubkey;
 
                 const { signature } = await provider.signAndSendTransaction(transaction);
-                await connection.confirmTransaction(signature, 'confirmed');
+                await connection.confirmTransaction({
+                    blockhash,
+                    lastValidBlockHeight,
+                    signature,
+                }, 'confirmed');
 
                 alert('¡Transacción completada con éxito!');
                 signButton.textContent = '¡Transacción Enviada!';
