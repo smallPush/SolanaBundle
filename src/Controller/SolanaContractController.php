@@ -2,11 +2,14 @@
 
 namespace App\Controller;
 
-use App\DTO\SolanaContractSummary;
+use App\Application\Command\CreateSolanaContractCommand;
+use App\Application\Command\ValidateSolanaContractCommand;
+use App\Application\Query\GetSolanaContractByIdQuery;
+use App\Application\Query\GetSolanaContractsByUserQuery;
+use App\Contract\Bus\CommandBusInterface;
+use App\Contract\Bus\QueryBusInterface;
 use App\Entity\SolanaContract;
 use App\Form\SolanaContractType;
-use App\Repository\SolanaContractRepository;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -19,18 +22,19 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_USER')]
 class SolanaContractController extends AbstractController
 {
-    #[Route('/', name: 'app_solana_contract_index', methods: ['GET'])]
-    public function index(EntityManagerInterface $entityManager): Response
+    private CommandBusInterface $commandBus;
+    private QueryBusInterface $queryBus;
+
+    public function __construct(CommandBusInterface $commandBus, QueryBusInterface $queryBus)
     {
-        $user = $this->getUser();
-        $contracts = $entityManager
-            ->getRepository(SolanaContract::class)
-            ->createQueryBuilder('s')
-            ->select(sprintf('NEW %s(s.id, s.title, s.status)', SolanaContractSummary::class))
-            ->where('s.author = :user OR s.donor = :user OR s.volunteer = :user')
-            ->setParameter('user', $user)
-            ->getQuery()
-            ->getResult();
+        $this->commandBus = $commandBus;
+        $this->queryBus = $queryBus;
+    }
+
+    #[Route('/', name: 'app_solana_contract_index', methods: ['GET'])]
+    public function index(): Response
+    {
+        $contracts = $this->queryBus->ask(new GetSolanaContractsByUserQuery($this->getUser()));
 
         return $this->render('solana_contract/index.html.twig', [
             'contracts' => $contracts,
@@ -39,18 +43,14 @@ class SolanaContractController extends AbstractController
 
     #[Route('/new', name: 'app_solana_contract_new', methods: ['GET', 'POST'])]
     #[IsGranted('ROLE_USER')]
-    public function new(Request $request, EntityManagerInterface $entityManager): Response
+    public function new(Request $request): Response
     {
         $contract = new SolanaContract();
         $form = $this->createForm(SolanaContractType::class, $contract);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $contract->setAuthor($this->getUser());
-            $contract->setStatus('pending'); // Set default status
-
-            $entityManager->persist($contract);
-            $entityManager->flush();
+            $this->commandBus->dispatch(new CreateSolanaContractCommand($contract, $this->getUser()));
 
             $this->addFlash('success', 'Nuevo contrato creado con éxito.');
 
@@ -64,9 +64,9 @@ class SolanaContractController extends AbstractController
     }
 
     #[Route('/{id}', name: 'app_solana_contract_show', methods: ['GET'])]
-    public function show(int $id, SolanaContractRepository $solanaContractRepository): Response
+    public function show(int $id): Response
     {
-        $contract = $solanaContractRepository->findWithRelations($id);
+        $contract = $this->queryBus->ask(new GetSolanaContractByIdQuery($id));
 
         if (!$contract) {
             throw $this->createNotFoundException('Contrato no encontrado.');
@@ -82,35 +82,20 @@ class SolanaContractController extends AbstractController
 
     #[Route('/{id}/validate', name: 'app_solana_contract_validate', methods: ['POST'])]
     #[IsGranted('VALIDATE', subject: 'contract')]
-    public function validate(SolanaContract $contract, EntityManagerInterface $entityManager, Request $request, CsrfTokenManagerInterface $csrfTokenManager): Response
+    public function validate(SolanaContract $contract, Request $request, CsrfTokenManagerInterface $csrfTokenManager): Response
     {
         $token = new CsrfToken('validate' . $contract->getId(), $request->request->get('_token'));
         if (!$csrfTokenManager->isTokenValid($token)) {
             throw $this->createAccessDeniedException('Token CSRF inválido.');
         }
 
-        $user = $this->getUser();
-        $status = $contract->getStatus();
-        $isDonor = ($user === $contract->getDonor());
-        $isVolunteer = ($user === $contract->getVolunteer());
+        try {
+            $this->commandBus->dispatch(new ValidateSolanaContractCommand($contract, $this->getUser()));
 
-        $newStatus = null;
-
-        if ($isDonor && $status === 'pending') {
-            $newStatus = 'validated_donor';
-        } elseif ($isVolunteer && $status === 'pending') {
-            $newStatus = 'validated_volunteer';
-        } elseif ($isDonor && $status === 'validated_volunteer') {
-            $newStatus = 'ready_for_signature';
-        } elseif ($isVolunteer && $status === 'validated_donor') {
-            $newStatus = 'ready_for_signature';
-        }
-
-        if ($newStatus) {
-            $contract->setStatus($newStatus);
-            $entityManager->flush();
+            // Re-fetch status or just trust the entity is updated
+            $newStatus = $contract->getStatus();
             $this->addFlash('success', 'Contrato validado. Nuevo estado: ' . $newStatus);
-        } else {
+        } catch (\DomainException $e) {
             $this->addFlash('warning', 'No se ha podido validar el contrato en este estado o no tienes permisos.');
         }
 
