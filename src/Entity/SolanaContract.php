@@ -7,6 +7,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: SolanaContractRepository::class)]
+#[ORM\HasLifecycleCallbacks]
 class SolanaContract
 {
     #[ORM\Id]
@@ -43,6 +44,23 @@ class SolanaContract
     #[ORM\ManyToOne(inversedBy: 'contractsAsVolunteer')]
     #[ORM\JoinColumn(nullable: false)]
     private ?User $volunteer = null;
+
+    #[ORM\PrePersist]
+    #[ORM\PreUpdate]
+    public function validate(): void
+    {
+        if (bccomp((string)$this->amount, '0', 9) <= 0) {
+            throw new \InvalidArgumentException('Amount must be positive.');
+        }
+
+        if ($this->donorWallet !== null && strlen($this->donorWallet) > 44) {
+            throw new \LengthException('Donor wallet address cannot exceed 44 characters.');
+        }
+
+        if ($this->volunteerWallet !== null && strlen($this->volunteerWallet) > 44) {
+            throw new \LengthException('Volunteer wallet address cannot exceed 44 characters.');
+        }
+    }
 
     public function getId(): ?int
     {
