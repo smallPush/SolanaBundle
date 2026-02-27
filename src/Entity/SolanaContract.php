@@ -156,4 +156,29 @@ class SolanaContract
 
         return $this;
     }
+
+    public function canBeValidatedBy(?User $user): bool
+    {
+        if (!$user) {
+            return false;
+        }
+
+        // Use identity comparison if possible, otherwise rely on ID if persisted
+        $isDonorUser = ($user === $this->getDonor()) || ($user->getId() && $this->getDonor()?->getId() && $user->getId() === $this->getDonor()->getId());
+        $isVolunteerUser = ($user === $this->getVolunteer()) || ($user->getId() && $this->getVolunteer()?->getId() && $user->getId() === $this->getVolunteer()->getId());
+
+        $isDonor = $isDonorUser && in_array('ROLE_DONOR', $user->getRoles(), true);
+        $isVolunteer = $isVolunteerUser && in_array('ROLE_VOLUNTEER', $user->getRoles(), true);
+        $status = $this->getStatus();
+
+        if ($isDonor && in_array($status, ['pending', 'validated_volunteer'], true)) {
+            return true;
+        }
+
+        if ($isVolunteer && in_array($status, ['pending', 'validated_donor'], true)) {
+            return true;
+        }
+
+        return false;
+    }
 }
