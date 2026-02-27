@@ -34,7 +34,7 @@
     {# --- Botones de Acción --- #}
     <div class="mt-4">
         {# Botón de Validación #}
-        {% if (is_granted('ROLE_DONOR') and app.user == contract.donor and contract.status in ['pending', 'validated_volunteer']) or (is_granted('ROLE_VOLUNTEER') and app.user == contract.volunteer and contract.status in ['pending', 'validated_donor']) %}
+        {% if contract.canBeValidatedBy(app.user) %}
             <form method="post" action="{{ path('app_solana_contract_validate', {'id': contract.id}) }}" onsubmit="return confirm('¿Estás seguro de que quieres validar este contrato?');">
                 <input type="hidden" name="_token" value="{{ csrf_token('validate' ~ contract.id) }}">
                 <button class="btn btn-warning">Validar Contrato</button>
