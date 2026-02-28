@@ -1,7 +1,24 @@
 {
     "require": {
         "symfony/security-bundle": "^7.3",
-        "symfony/webpack-encore-bundle": "^2.3"
+        "symfony/webpack-encore-bundle": "^2.3",
+        "symfony/framework-bundle": "^7.0",
+        "symfony/http-kernel": "^7.0",
+        "symfony/config": "^7.0",
+        "symfony/dependency-injection": "^7.0",
+        "symfony/routing": "^7.0",
+        "symfony/yaml": "^7.0",
+        "symfony/dotenv": "^7.0",
+        "symfony/runtime": "^7.0",
+        "symfony/doctrine-bridge": "^7.0",
+        "doctrine/orm": "^2.16",
+        "doctrine/doctrine-bundle": "^2.10"
+    },
+    "config": {
+        "allow-plugins": {
+            "symfony/flex": true,
+            "symfony/runtime": true
+        }
     },
     "autoload": {
         "psr-4": {
