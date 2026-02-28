@@ -24,15 +24,34 @@ namespace App\Tests\CommandHandler {
 namespace App\Tests\Query {
     use App\Contract\Cqrs\QueryInterface;
     class TestQuery implements QueryInterface {}
+
+    use App\Contract\Cqrs\CacheableQueryInterface;
+    class TestCacheableQuery implements CacheableQueryInterface {
+        public function getCacheKey(): string {
+            return 'test_cache_key';
+        }
+        public function getCacheTtl(): ?int {
+            return 3600;
+        }
+    }
 }
 
 namespace App\Tests\QueryHandler {
     use App\Contract\Cqrs\QueryHandlerInterface;
     use App\Contract\Cqrs\QueryInterface;
+    use App\Tests\Query\TestCacheableQuery;
 
     class TestHandler implements QueryHandlerInterface {
         public function __invoke(QueryInterface $query): mixed {
             return 'result';
+        }
+    }
+
+    class TestCacheableHandler implements QueryHandlerInterface {
+        public int $callCount = 0;
+        public function __invoke(QueryInterface $query): mixed {
+            $this->callCount++;
+            return 'cached_result_' . $this->callCount;
         }
     }
 }
@@ -40,10 +59,14 @@ namespace App\Tests\QueryHandler {
 namespace App\Tests {
     use App\Infrastructure\Bus\SimpleCommandBus;
     use App\Infrastructure\Bus\SimpleQueryBus;
+    use App\Infrastructure\Bus\Middleware\QueryCacheMiddleware;
+    use App\Infrastructure\Cache\FileCacheAdapter;
     use App\Tests\Command\TestCommand;
     use App\Tests\CommandHandler\TestHandler as CmdHandler;
     use App\Tests\Query\TestQuery;
+    use App\Tests\Query\TestCacheableQuery;
     use App\Tests\QueryHandler\TestHandler as QryHandler;
+    use App\Tests\QueryHandler\TestCacheableHandler as QryCacheableHandler;
     use Psr\Container\ContainerInterface;
 
     class SimpleContainer implements ContainerInterface {
@@ -96,6 +119,46 @@ namespace App\Tests {
     } catch (\Throwable $e) {
         echo "Query Error: " . $e->getMessage() . "\n";
         exit(1);
+    }
+
+    echo "Testing Cache Middleware...\n";
+
+    $cacheDir = sys_get_temp_dir() . '/cqrs_test_cache';
+    $cacheAdapter = new FileCacheAdapter($cacheDir);
+    $cacheAdapter->clear();
+
+    $cacheMiddleware = new QueryCacheMiddleware($cacheAdapter);
+
+    $cacheableQryHandler = new QryCacheableHandler();
+    $container->set(QryCacheableHandler::class, $cacheableQryHandler);
+
+    $qBusWithCache = new SimpleQueryBus($container, [$cacheMiddleware]);
+
+    try {
+        $query1 = new TestCacheableQuery();
+        $res1 = $qBusWithCache->ask($query1);
+
+        if ($res1 === 'cached_result_1' && $cacheableQryHandler->callCount === 1) {
+            echo "Cache Middleware Query (First run) OK\n";
+        } else {
+            echo "Cache Middleware Query (First run) Failed\n";
+            exit(1);
+        }
+
+        $query2 = new TestCacheableQuery();
+        $res2 = $qBusWithCache->ask($query2);
+
+        if ($res2 === 'cached_result_1' && $cacheableQryHandler->callCount === 1) {
+            echo "Cache Middleware Query (Cached run) OK\n";
+        } else {
+            echo "Cache Middleware Query (Cached run) Failed\n";
+            exit(1);
+        }
+    } catch (\Throwable $e) {
+        echo "Cache Middleware Error: " . $e->getMessage() . "\n";
+        exit(1);
+    } finally {
+        $cacheAdapter->clear();
     }
 
     echo "All tests passed!\n";

@@ -19,8 +19,14 @@ services:
     App\Infrastructure\Bus\SimpleCommandBus:
         arguments: ['@service_container']
 
+    App\Infrastructure\Bus\Middleware\QueryCacheMiddleware:
+        arguments: ['@App\Infrastructure\Cache\FileCacheAdapter']
+
     App\Infrastructure\Bus\SimpleQueryBus:
-        arguments: ['@service_container']
+        arguments:
+            $container: '@service_container'
+            $middlewares:
+                - '@App\Infrastructure\Bus\Middleware\QueryCacheMiddleware'
 
     # Make handlers public so the simple bus can locate them via container
     App\Application\CommandHandler\:
