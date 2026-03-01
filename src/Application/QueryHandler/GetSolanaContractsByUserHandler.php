@@ -5,7 +5,6 @@ namespace App\Application\QueryHandler;
 use App\Application\Query\GetSolanaContractsByUserQuery;
 use App\Contract\Cqrs\QueryHandlerInterface;
 use App\Contract\Cqrs\QueryInterface;
-use App\Contract\Psr\Cache\CacheItemPoolInterface;
 use App\DTO\PaginatedResult;
 use App\DTO\SolanaContractSummary;
 use App\Entity\SolanaContract;
@@ -14,12 +13,10 @@ use Doctrine\ORM\EntityManagerInterface;
 class GetSolanaContractsByUserHandler implements QueryHandlerInterface
 {
     private EntityManagerInterface $entityManager;
-    private CacheItemPoolInterface $cache;
 
-    public function __construct(EntityManagerInterface $entityManager, CacheItemPoolInterface $cache)
+    public function __construct(EntityManagerInterface $entityManager)
     {
         $this->entityManager = $entityManager;
-        $this->cache = $cache;
     }
 
     public function __invoke(QueryInterface $query): mixed
@@ -31,13 +28,6 @@ class GetSolanaContractsByUserHandler implements QueryHandlerInterface
         $user = $query->getUser();
         $page = $query->getPage();
         $limit = $query->getLimit();
-
-        $key = 'user_contracts_' . $user->getId() . '_' . $page . '_' . $limit;
-        $cacheItem = $this->cache->getItem($key);
-
-        if ($cacheItem->isHit()) {
-            return $cacheItem->get();
-        }
 
         $qb = $this->entityManager
             ->getRepository(SolanaContract::class)
@@ -64,10 +54,6 @@ class GetSolanaContractsByUserHandler implements QueryHandlerInterface
             $limit,
             (int) ceil($total / $limit)
         );
-
-        $cacheItem->set($result);
-        $cacheItem->expiresAfter(60);
-        $this->cache->save($cacheItem);
 
         return $result;
     }

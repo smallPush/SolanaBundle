@@ -2,10 +2,10 @@
 
 namespace App\Application\Query;
 
-use App\Contract\Cqrs\QueryInterface;
+use App\Contract\Cqrs\CacheableQueryInterface;
 use App\Entity\User;
 
-class GetSolanaContractsByUserQuery implements QueryInterface
+class GetSolanaContractsByUserQuery implements CacheableQueryInterface
 {
     private User $user;
     private int $page;
@@ -31,5 +31,15 @@ class GetSolanaContractsByUserQuery implements QueryInterface
     public function getLimit(): int
     {
         return $this->limit;
+    }
+
+    public function getCacheKey(): string
+    {
+        return 'user_contracts_' . $this->user->getId() . '_' . $this->page . '_' . $this->limit;
+    }
+
+    public function getCacheTtl(): int
+    {
+        return 60; // Cache for 60 seconds
     }
 }
