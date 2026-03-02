@@ -9,6 +9,11 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: SolanaContractRepository::class)]
 class SolanaContract
 {
+    public const STATUS_PENDING = 'pending';
+    public const STATUS_VALIDATED_DONOR = 'validated_donor';
+    public const STATUS_VALIDATED_VOLUNTEER = 'validated_volunteer';
+    public const STATUS_READY_FOR_SIGNATURE = 'ready_for_signature';
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -30,7 +35,7 @@ class SolanaContract
     private ?string $amount = null;
 
     #[ORM\Column(length: 50)]
-    private ?string $status = 'pending';
+    private ?string $status = self::STATUS_PENDING;
 
     #[ORM\ManyToOne(inversedBy: 'authoredContracts')]
     #[ORM\JoinColumn(nullable: false)]
@@ -155,5 +160,34 @@ class SolanaContract
         $this->volunteer = $volunteer;
 
         return $this;
+    }
+
+    /**
+     * Applies a status transition based on the user performing the validation.
+     * Returns true if a transition was applied, false otherwise.
+     */
+    public function applyTransition(User $user): bool
+    {
+        if ($user === $this->getDonor() && $this->status === self::STATUS_PENDING) {
+            $this->status = self::STATUS_VALIDATED_DONOR;
+            return true;
+        }
+
+        if ($user === $this->getVolunteer() && $this->status === self::STATUS_PENDING) {
+            $this->status = self::STATUS_VALIDATED_VOLUNTEER;
+            return true;
+        }
+
+        if ($user === $this->getDonor() && $this->status === self::STATUS_VALIDATED_VOLUNTEER) {
+            $this->status = self::STATUS_READY_FOR_SIGNATURE;
+            return true;
+        }
+
+        if ($user === $this->getVolunteer() && $this->status === self::STATUS_VALIDATED_DONOR) {
+            $this->status = self::STATUS_READY_FOR_SIGNATURE;
+            return true;
+        }
+
+        return false;
     }
 }

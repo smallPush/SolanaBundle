@@ -42,7 +42,7 @@ class SolanaContractController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $contract->setAuthor($this->getUser());
-            $contract->setStatus('pending'); // Set default status
+            $contract->setStatus(SolanaContract::STATUS_PENDING); // Set default status
 
             $entityManager->persist($contract);
             $entityManager->flush();
@@ -72,26 +72,10 @@ class SolanaContractController extends AbstractController
     public function validate(SolanaContract $contract, EntityManagerInterface $entityManager): Response
     {
         $user = $this->getUser();
-        $status = $contract->getStatus();
-        $isDonor = ($user === $contract->getDonor());
-        $isVolunteer = ($user === $contract->getVolunteer());
 
-        $newStatus = null;
-
-        if ($isDonor && $status === 'pending') {
-            $newStatus = 'validated_donor';
-        } elseif ($isVolunteer && $status === 'pending') {
-            $newStatus = 'validated_volunteer';
-        } elseif ($isDonor && $status === 'validated_volunteer') {
-            $newStatus = 'ready_for_signature';
-        } elseif ($isVolunteer && $status === 'validated_donor') {
-            $newStatus = 'ready_for_signature';
-        }
-
-        if ($newStatus) {
-            $contract->setStatus($newStatus);
+        if ($contract->applyTransition($user)) {
             $entityManager->flush();
-            $this->addFlash('success', 'Contrato validado. Nuevo estado: ' . $newStatus);
+            $this->addFlash('success', 'Contrato validado. Nuevo estado: ' . $contract->getStatus());
         } else {
             $this->addFlash('warning', 'No se ha podido validar el contrato en este estado o no tienes permisos.');
         }
