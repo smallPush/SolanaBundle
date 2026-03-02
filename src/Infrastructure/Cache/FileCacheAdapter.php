@@ -2,8 +2,8 @@
 
 namespace App\Infrastructure\Cache;
 
-use App\Contract\Psr\Cache\CacheItemInterface;
-use App\Contract\Psr\Cache\CacheItemPoolInterface;
+use Psr\Cache\CacheItemInterface;
+use Psr\Cache\CacheItemPoolInterface;
 
 class FileCacheAdapter implements CacheItemPoolInterface
 {

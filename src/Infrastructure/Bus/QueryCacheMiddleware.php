@@ -5,7 +5,7 @@ namespace App\Infrastructure\Bus;
 use App\Contract\Bus\QueryMiddlewareInterface;
 use App\Contract\Cqrs\CacheableQueryInterface;
 use App\Contract\Cqrs\QueryInterface;
-use App\Contract\Psr\Cache\CacheItemPoolInterface;
+use Psr\Cache\CacheItemPoolInterface;
 
 class QueryCacheMiddleware implements QueryMiddlewareInterface
 {
