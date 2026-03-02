@@ -2,7 +2,7 @@
 
 namespace App\Infrastructure\Cache;
 
-use App\Contract\Psr\Cache\CacheItemInterface;
+use Psr\Cache\CacheItemInterface;
 
 class CacheItem implements CacheItemInterface
 {
