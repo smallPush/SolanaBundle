@@ -46,8 +46,8 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\ORM\Query;
-use App\Contract\Psr\Cache\CacheItemPoolInterface;
-use App\Contract\Psr\Cache\CacheItemInterface;
+use Psr\Cache\CacheItemPoolInterface;
+use Psr\Cache\CacheItemInterface;
 
 class PaginationOptimizationTest
 {

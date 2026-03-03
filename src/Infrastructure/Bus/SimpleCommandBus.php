@@ -9,10 +9,12 @@ use Psr\Container\ContainerInterface;
 class SimpleCommandBus implements CommandBusInterface
 {
     private ContainerInterface $container;
+    private iterable $middlewares;
 
-    public function __construct(ContainerInterface $container)
+    public function __construct(ContainerInterface $container, iterable $middlewares = [])
     {
         $this->container = $container;
+        $this->middlewares = $middlewares;
     }
 
     public function dispatch(CommandInterface $command): void
@@ -27,7 +29,23 @@ class SimpleCommandBus implements CommandBusInterface
         }
 
         $handler = $this->container->get($handlerClass);
-        $handler($command);
+
+        $core = function (CommandInterface $command) use ($handler): void {
+            $handler($command);
+        };
+
+        $middlewares = is_array($this->middlewares) ? $this->middlewares : iterator_to_array($this->middlewares);
+        $pipeline = array_reduce(
+            array_reverse($middlewares),
+            function (callable $next, $middleware) {
+                return function (CommandInterface $command) use ($middleware, $next): void {
+                    $middleware->handle($command, $next);
+                };
+            },
+            $core
+        );
+
+        $pipeline($command);
     }
 
     private function getHandlerClass(CommandInterface $command): string
