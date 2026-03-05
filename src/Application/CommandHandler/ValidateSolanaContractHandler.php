@@ -5,6 +5,7 @@ namespace App\Application\CommandHandler;
 use App\Application\Command\ValidateSolanaContractCommand;
 use App\Contract\Cqrs\CommandHandlerInterface;
 use App\Contract\Cqrs\CommandInterface;
+use App\Entity\SolanaContract;
 use Doctrine\ORM\EntityManagerInterface;
 
 class ValidateSolanaContractHandler implements CommandHandlerInterface
@@ -31,14 +32,14 @@ class ValidateSolanaContractHandler implements CommandHandlerInterface
 
         $newStatus = null;
 
-        if ($isDonor && $status === 'pending') {
-            $newStatus = 'validated_donor';
-        } elseif ($isVolunteer && $status === 'pending') {
-            $newStatus = 'validated_volunteer';
-        } elseif ($isDonor && $status === 'validated_volunteer') {
-            $newStatus = 'ready_for_signature';
-        } elseif ($isVolunteer && $status === 'validated_donor') {
-            $newStatus = 'ready_for_signature';
+        if ($isDonor && $status === SolanaContract::STATUS_PENDING) {
+            $newStatus = SolanaContract::STATUS_VALIDATED_DONOR;
+        } elseif ($isVolunteer && $status === SolanaContract::STATUS_PENDING) {
+            $newStatus = SolanaContract::STATUS_VALIDATED_VOLUNTEER;
+        } elseif ($isDonor && $status === SolanaContract::STATUS_VALIDATED_VOLUNTEER) {
+            $newStatus = SolanaContract::STATUS_READY_FOR_SIGNATURE;
+        } elseif ($isVolunteer && $status === SolanaContract::STATUS_VALIDATED_DONOR) {
+            $newStatus = SolanaContract::STATUS_READY_FOR_SIGNATURE;
         }
 
         if ($newStatus) {

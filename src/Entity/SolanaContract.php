@@ -10,6 +10,11 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\HasLifecycleCallbacks]
 class SolanaContract
 {
+    public const STATUS_PENDING = 'pending';
+    public const STATUS_VALIDATED_DONOR = 'validated_donor';
+    public const STATUS_VALIDATED_VOLUNTEER = 'validated_volunteer';
+    public const STATUS_READY_FOR_SIGNATURE = 'ready_for_signature';
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -31,7 +36,7 @@ class SolanaContract
     private ?string $amount = null;
 
     #[ORM\Column(length: 50)]
-    private ?string $status = 'pending';
+    private ?string $status = self::STATUS_PENDING;
 
     #[ORM\ManyToOne(inversedBy: 'authoredContracts')]
     #[ORM\JoinColumn(nullable: false)]
@@ -189,11 +194,11 @@ class SolanaContract
         $isVolunteer = $isVolunteerUser && in_array('ROLE_VOLUNTEER', $user->getRoles(), true);
         $status = $this->getStatus();
 
-        if ($isDonor && in_array($status, ['pending', 'validated_volunteer'], true)) {
+        if ($isDonor && in_array($status, [self::STATUS_PENDING, self::STATUS_VALIDATED_VOLUNTEER], true)) {
             return true;
         }
 
-        if ($isVolunteer && in_array($status, ['pending', 'validated_donor'], true)) {
+        if ($isVolunteer && in_array($status, [self::STATUS_PENDING, self::STATUS_VALIDATED_DONOR], true)) {
             return true;
         }
 
