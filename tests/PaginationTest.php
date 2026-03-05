@@ -10,7 +10,7 @@ if (!interface_exists('Doctrine\ORM\EntityManagerInterface')) {
 }
 
 if (!class_exists('Doctrine\ORM\EntityRepository')) {
-    eval('namespace Doctrine\ORM; class EntityRepository { public function createQueryBuilder($alias) {} }');
+    eval('namespace Doctrine\ORM; class EntityRepository { public function createQueryBuilder($alias) {} public function createQueryBuilderForUser($user) {} }');
 }
 
 if (!class_exists('Doctrine\ORM\QueryBuilder')) {
@@ -109,6 +109,7 @@ class PaginationOptimizationTest
             private $qb;
             public function __construct($qb) { $this->qb = $qb; }
             public function createQueryBuilder($alias) { return $this->qb; }
+            public function createQueryBuilderForUser($user) { return $this->qb; }
         };
 
         // Mock EntityManager
