@@ -31,9 +31,7 @@ class GetSolanaContractsByUserHandler implements QueryHandlerInterface
 
         $qb = $this->entityManager
             ->getRepository(SolanaContract::class)
-            ->createQueryBuilder('s')
-            ->where('s.author = :user OR s.donor = :user OR s.volunteer = :user')
-            ->setParameter('user', $user);
+            ->createQueryBuilderForUser($user);
 
         // Count query
         $countQb = clone $qb;
