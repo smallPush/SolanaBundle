@@ -21,6 +21,9 @@ services:
             $container: '@service_container'
             $middlewares: []
 
+    App\Infrastructure\Bus\Middleware\QueryCacheMiddleware:
+        arguments: ['@App\Infrastructure\Cache\FileCacheAdapter']
+
     App\Infrastructure\Bus\SimpleQueryBus:
         arguments:
             $container: '@service_container'
