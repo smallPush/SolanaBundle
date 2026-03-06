@@ -30,7 +30,7 @@ namespace App\Tests\Query {
         public function getCacheKey(): string {
             return 'test_cache_key';
         }
-        public function getCacheTtl(): ?int {
+        public function getCacheTtl(): int {
             return 3600;
         }
     }

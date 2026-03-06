@@ -28,7 +28,7 @@ services:
         arguments:
             $container: '@service_container'
             $middlewares:
-                - '@App\Infrastructure\Bus\QueryCacheMiddleware'
+                - '@App\Infrastructure\Bus\Middleware\QueryCacheMiddleware'
 
     # Make handlers public so the simple bus can locate them via container
     App\Application\CommandHandler\:
