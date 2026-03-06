@@ -5,6 +5,7 @@ namespace App\Application\CommandHandler;
 use App\Application\Command\CreateSolanaContractCommand;
 use App\Contract\Cqrs\CommandHandlerInterface;
 use App\Contract\Cqrs\CommandInterface;
+use App\Entity\SolanaContract;
 use Doctrine\ORM\EntityManagerInterface;
 
 class CreateSolanaContractHandler implements CommandHandlerInterface
@@ -26,7 +27,7 @@ class CreateSolanaContractHandler implements CommandHandlerInterface
         $author = $command->getAuthor();
 
         $contract->setAuthor($author);
-        $contract->setStatus('pending');
+        $contract->setStatus(SolanaContract::STATUS_PENDING);
 
         $this->entityManager->persist($contract);
         $this->entityManager->flush();

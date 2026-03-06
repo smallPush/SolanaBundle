@@ -2,8 +2,8 @@
 
 namespace App\Infrastructure\Cache;
 
-use App\Contract\Psr\Cache\CacheItemInterface;
-use App\Contract\Psr\Cache\CacheItemPoolInterface;
+use Psr\Cache\CacheItemInterface;
+use Psr\Cache\CacheItemPoolInterface;
 
 class FileCacheAdapter implements CacheItemPoolInterface
 {
@@ -18,8 +18,16 @@ class FileCacheAdapter implements CacheItemPoolInterface
         }
     }
 
+    private function validateKey(string $key): void
+    {
+        if (!preg_match('/^[a-zA-Z0-9_.]{1,64}$/', $key)) {
+            throw new InvalidArgumentException(sprintf('Invalid key: "%s".', $key));
+        }
+    }
+
     public function getItem(string $key): CacheItemInterface
     {
+        $this->validateKey($key);
         $file = $this->getFilename($key);
         if (file_exists($file)) {
             $data = unserialize(file_get_contents($file));
@@ -36,12 +44,16 @@ class FileCacheAdapter implements CacheItemPoolInterface
     public function getItems(array $keys = []): iterable
     {
         foreach ($keys as $key) {
+            $this->validateKey($key);
+        }
+        foreach ($keys as $key) {
             yield $key => $this->getItem($key);
         }
     }
 
     public function hasItem(string $key): bool
     {
+        $this->validateKey($key);
         return $this->getItem($key)->isHit();
     }
 
@@ -58,6 +70,7 @@ class FileCacheAdapter implements CacheItemPoolInterface
 
     public function deleteItem(string $key): bool
     {
+        $this->validateKey($key);
         $file = $this->getFilename($key);
         if (file_exists($file)) {
             return unlink($file);
@@ -67,6 +80,9 @@ class FileCacheAdapter implements CacheItemPoolInterface
 
     public function deleteItems(array $keys): bool
     {
+        foreach ($keys as $key) {
+            $this->validateKey($key);
+        }
         foreach ($keys as $key) {
             $this->deleteItem($key);
         }

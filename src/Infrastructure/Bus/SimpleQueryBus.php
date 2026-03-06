@@ -10,10 +10,6 @@ use Psr\Container\ContainerInterface;
 class SimpleQueryBus implements QueryBusInterface
 {
     private ContainerInterface $container;
-
-    /**
-     * @var iterable<QueryMiddlewareInterface>
-     */
     private iterable $middlewares;
 
     public function __construct(ContainerInterface $container, iterable $middlewares = [])
@@ -61,6 +57,23 @@ class SimpleQueryBus implements QueryBusInterface
                 return $middleware->handle($q, $next);
             };
         }
+
+        $handler = $this->container->get($handlerClass);
+
+        $core = function (QueryInterface $query) use ($handler) {
+            return $handler($query);
+        };
+
+        $middlewares = is_array($this->middlewares) ? $this->middlewares : iterator_to_array($this->middlewares);
+        $pipeline = array_reduce(
+            array_reverse($middlewares),
+            function (callable $next, $middleware) {
+                return function (QueryInterface $query) use ($middleware, $next) {
+                    return $middleware->handle($query, $next);
+                };
+            },
+            $core
+        );
 
         return $pipeline($query);
     }

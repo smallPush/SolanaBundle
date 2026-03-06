@@ -17,3 +17,8 @@ security:
         main:
             lazy: true
             provider: app_user_provider
+
+    access_control:
+        - { path: ^/login, roles: PUBLIC_ACCESS }
+        - { path: ^/register, roles: PUBLIC_ACCESS }
+        - { path: ^/, roles: ROLE_USER }

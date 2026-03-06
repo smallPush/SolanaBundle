@@ -2,19 +2,15 @@
 
 namespace App\Contract\Cqrs;
 
-/**
- * Interface for queries that can be cached.
- */
 interface CacheableQueryInterface extends QueryInterface
 {
     /**
-     * Returns the cache key for this query.
+     * Get the cache key for the query.
      */
     public function getCacheKey(): string;
 
     /**
-     * Returns the Time-To-Live for the cache item in seconds.
-     * Return null for infinite or default cache duration.
+     * Get the cache Time-To-Live (TTL) in seconds.
      */
-    public function getCacheTtl(): ?int;
+    public function getCacheTtl(): int;
 }

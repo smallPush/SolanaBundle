@@ -21,6 +21,17 @@ class SolanaContractRepository extends ServiceEntityRepository
         parent::__construct($registry, SolanaContract::class);
     }
 
+    /**
+     * @param \App\Entity\User $user
+     * @return \Doctrine\ORM\QueryBuilder
+     */
+    public function createQueryBuilderForUser(\App\Entity\User $user): \Doctrine\ORM\QueryBuilder
+    {
+        return $this->createQueryBuilder('s')
+            ->where('s.author = :user OR s.donor = :user OR s.volunteer = :user')
+            ->setParameter('user', $user);
+    }
+
     public function findWithRelations(int $id): ?SolanaContract
     {
         return $this->createQueryBuilder('s')

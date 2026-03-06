@@ -56,8 +56,22 @@ namespace App\Tests\QueryHandler {
     }
 }
 
+namespace App\Tests\CommandMiddleware {
+    use App\Contract\Bus\CommandMiddlewareInterface;
+    use App\Contract\Cqrs\CommandInterface;
+
+    class TestCommandMiddleware implements CommandMiddlewareInterface {
+        public bool $called = false;
+        public function handle(CommandInterface $command, callable $next): void {
+            $this->called = true;
+            $next($command);
+        }
+    }
+}
+
 namespace App\Tests {
     use App\Infrastructure\Bus\SimpleCommandBus;
+    use App\Tests\CommandMiddleware\TestCommandMiddleware;
     use App\Infrastructure\Bus\SimpleQueryBus;
     use App\Infrastructure\Bus\Middleware\QueryCacheMiddleware;
     use App\Infrastructure\Cache\FileCacheAdapter;
@@ -88,13 +102,14 @@ namespace App\Tests {
     $cmdHandler = new CmdHandler();
     $container->set(CmdHandler::class, $cmdHandler);
 
-    $bus = new SimpleCommandBus($container);
+    $middleware = new TestCommandMiddleware();
+    $bus = new SimpleCommandBus($container, [$middleware]);
     try {
         $bus->dispatch(new TestCommand());
-        if ($cmdHandler->handled) {
-            echo "Command OK\n";
+        if ($cmdHandler->handled && $middleware->called) {
+            echo "Command OK (with Middleware)\n";
         } else {
-            echo "Command Failed (Not Handled)\n";
+            echo "Command Failed (Not Handled or Middleware skipped)\n";
             exit(1);
         }
     } catch (\Throwable $e) {

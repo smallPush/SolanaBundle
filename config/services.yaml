@@ -13,11 +13,13 @@ services:
     # Interface aliases
     App\Contract\Bus\CommandBusInterface: '@App\Infrastructure\Bus\SimpleCommandBus'
     App\Contract\Bus\QueryBusInterface: '@App\Infrastructure\Bus\SimpleQueryBus'
-    App\Contract\Psr\Cache\CacheItemPoolInterface: '@App\Infrastructure\Cache\FileCacheAdapter'
+    Psr\Cache\CacheItemPoolInterface: '@App\Infrastructure\Cache\FileCacheAdapter'
 
     # Infrastructure
     App\Infrastructure\Bus\SimpleCommandBus:
-        arguments: ['@service_container']
+        arguments:
+            $container: '@service_container'
+            $middlewares: []
 
     App\Infrastructure\Bus\Middleware\QueryCacheMiddleware:
         arguments: ['@App\Infrastructure\Cache\FileCacheAdapter']
@@ -26,7 +28,7 @@ services:
         arguments:
             $container: '@service_container'
             $middlewares:
-                - '@App\Infrastructure\Bus\Middleware\QueryCacheMiddleware'
+                - '@App\Infrastructure\Bus\QueryCacheMiddleware'
 
     # Make handlers public so the simple bus can locate them via container
     App\Application\CommandHandler\:

@@ -2,14 +2,22 @@
 
 namespace App\Tests\Entity;
 
-use App\Entity\SolanaContract;
-use PHPUnit\Framework\TestCase;
+require_once __DIR__ . '/../../vendor/autoload.php';
 
-class SolanaContractTest extends TestCase
+use App\Entity\SolanaContract;
+
+class SolanaContractTest
 {
     public function testDefaultStatus(): void
     {
         $contract = new SolanaContract();
-        $this->assertSame('pending', $contract->getStatus());
+        if ($contract->getStatus() !== SolanaContract::STATUS_PENDING) {
+            echo "Failed: default status is not pending.\n";
+            exit(1);
+        }
+        echo "PASS: Default status is pending.\n";
     }
 }
+
+$test = new SolanaContractTest();
+$test->testDefaultStatus();

@@ -7,12 +7,11 @@ use App\Contract\Cqrs\QueryInterface;
 interface QueryMiddlewareInterface
 {
     /**
-     * Handles the query and optionally calls the next middleware.
+     * Handle the query and call the next middleware in the chain.
      *
-     * @param QueryInterface $query The query to handle
-     * @param callable(QueryInterface): mixed $next The next middleware in the chain
-     *
-     * @return mixed The result of the query
+     * @param QueryInterface $query
+     * @param callable $next
+     * @return mixed
      */
     public function handle(QueryInterface $query, callable $next): mixed;
 }

@@ -74,35 +74,35 @@ $contract->setVolunteer($volunteer);
 // Test Cases
 
 // 1. Donor - Pending
-$contract->setStatus('pending');
+$contract->setStatus(SolanaContract::STATUS_PENDING);
 assertTest($contract->canBeValidatedBy($donor) === true, "Donor can validate when pending");
 
 // 2. Donor - Validated Volunteer
-$contract->setStatus('validated_volunteer');
+$contract->setStatus(SolanaContract::STATUS_VALIDATED_VOLUNTEER);
 assertTest($contract->canBeValidatedBy($donor) === true, "Donor can validate when validated_volunteer");
 
 // 3. Donor - Validated Donor (already validated by them)
-$contract->setStatus('validated_donor');
+$contract->setStatus(SolanaContract::STATUS_VALIDATED_DONOR);
 assertTest($contract->canBeValidatedBy($donor) === false, "Donor cannot validate when validated_donor");
 
 // 4. Donor - Ready
-$contract->setStatus('ready_for_signature');
+$contract->setStatus(SolanaContract::STATUS_READY_FOR_SIGNATURE);
 assertTest($contract->canBeValidatedBy($donor) === false, "Donor cannot validate when ready_for_signature");
 
 // 5. Volunteer - Pending
-$contract->setStatus('pending');
+$contract->setStatus(SolanaContract::STATUS_PENDING);
 assertTest($contract->canBeValidatedBy($volunteer) === true, "Volunteer can validate when pending");
 
 // 6. Volunteer - Validated Donor
-$contract->setStatus('validated_donor');
+$contract->setStatus(SolanaContract::STATUS_VALIDATED_DONOR);
 assertTest($contract->canBeValidatedBy($volunteer) === true, "Volunteer can validate when validated_donor");
 
 // 7. Volunteer - Validated Volunteer
-$contract->setStatus('validated_volunteer');
+$contract->setStatus(SolanaContract::STATUS_VALIDATED_VOLUNTEER);
 assertTest($contract->canBeValidatedBy($volunteer) === false, "Volunteer cannot validate when validated_volunteer");
 
 // 8. Other User - Pending
-$contract->setStatus('pending');
+$contract->setStatus(SolanaContract::STATUS_PENDING);
 assertTest($contract->canBeValidatedBy($otherUser) === false, "Other user cannot validate");
 
 // 9. ID Comparison Test (Different Instances, Same ID)
@@ -110,7 +110,7 @@ $donorClone = new User();
 setEntityId($donorClone, 1); // Same ID as $donor
 $donorClone->setRoles(['ROLE_DONOR']);
 
-$contract->setStatus('pending');
+$contract->setStatus(SolanaContract::STATUS_PENDING);
 // Should pass due to ID comparison logic
 assertTest($contract->canBeValidatedBy($donorClone) === true, "Donor instance with same ID can validate");
 
