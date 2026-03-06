@@ -42,7 +42,7 @@
         {% endif %}
 
         {# Botón para Firmar (se mostrará con JS) #}
-        {% if is_granted('ROLE_DONOR') and app.user == contract.donor and contract.status == 'ready_for_signature' %}
+        {% if is_granted('ROLE_DONOR') and app.user == contract.donor and contract.status == constant('App\\Entity\\SolanaContract::STATUS_READY_FOR_SIGNATURE') %}
              <button id="solana-sign-button"
                      class="btn btn-success"
                      data-to="{{ contract.volunteerWallet }}"

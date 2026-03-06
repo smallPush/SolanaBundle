@@ -11,7 +11,7 @@ class SolanaContractTest
     public function testDefaultStatus(): void
     {
         $contract = new SolanaContract();
-        if ($contract->getStatus() !== 'pending') {
+        if ($contract->getStatus() !== SolanaContract::STATUS_PENDING) {
             echo "Failed: default status is not pending.\n";
             exit(1);
         }
