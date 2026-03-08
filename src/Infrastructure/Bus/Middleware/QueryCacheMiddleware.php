@@ -5,7 +5,7 @@ namespace App\Infrastructure\Bus\Middleware;
 use App\Contract\Bus\QueryMiddlewareInterface;
 use App\Contract\Cqrs\CacheableQueryInterface;
 use App\Contract\Cqrs\QueryInterface;
-use App\Contract\Psr\Cache\CacheItemPoolInterface;
+use Psr\Cache\CacheItemPoolInterface;
 
 class QueryCacheMiddleware implements QueryMiddlewareInterface
 {
@@ -34,9 +34,7 @@ class QueryCacheMiddleware implements QueryMiddlewareInterface
         $item->set($result);
 
         $ttl = $query->getCacheTtl();
-        if ($ttl !== null) {
-            $item->expiresAfter($ttl);
-        }
+        $item->expiresAfter($ttl);
 
         $this->cache->save($item);
 
