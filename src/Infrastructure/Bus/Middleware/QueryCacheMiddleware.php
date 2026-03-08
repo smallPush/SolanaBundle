@@ -34,9 +34,7 @@ class QueryCacheMiddleware implements QueryMiddlewareInterface
         $item->set($result);
 
         $ttl = $query->getCacheTtl();
-        if ($ttl !== null) {
-            $item->expiresAfter($ttl);
-        }
+        $item->expiresAfter($ttl);
 
         $this->cache->save($item);
 

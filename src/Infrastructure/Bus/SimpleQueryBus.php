@@ -45,15 +45,16 @@ class SimpleQueryBus implements QueryBusInterface
     {
         $middlewareArray = is_array($middlewares) ? $middlewares : iterator_to_array($middlewares);
 
-        $pipeline = array_reduce(
-            array_reverse($middlewareArray),
-            function (callable $next, $middleware) {
-                return function (QueryInterface $query) use ($middleware, $next) {
-                    return $middleware->handle($query, $next);
-                };
-            },
-            $coreHandler
-        );
+        // Build the pipeline backwards
+        $pipeline = $coreHandler;
+
+        // Ensure middlewares are processed in order by wrapping them correctly
+        foreach (array_reverse($middlewareArray) as $middleware) {
+            $next = $pipeline;
+            $pipeline = function (QueryInterface $q) use ($middleware, $next) {
+                return $middleware->handle($q, $next);
+            };
+        }
 
         return $pipeline($query);
     }
