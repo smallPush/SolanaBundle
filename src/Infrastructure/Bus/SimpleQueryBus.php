@@ -43,8 +43,6 @@ class SimpleQueryBus implements QueryBusInterface
      */
     private function processPipeline(QueryInterface $query, iterable $middlewares, callable $coreHandler): mixed
     {
-        // Convert iterable to an array for easy pointer management,
-        // or just use iterator to build the onion.
         $middlewareArray = is_array($middlewares) ? $middlewares : iterator_to_array($middlewares);
 
         // Build the pipeline backwards
