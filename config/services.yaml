@@ -16,9 +16,15 @@ services:
     Psr\Cache\CacheItemPoolInterface: '@App\Infrastructure\Cache\FileCacheAdapter'
 
     # Infrastructure
-    App\Infrastructure\Bus\SimpleCommandBus:
+    App\Contract\Bus\Locator\HandlerLocatorInterface: '@App\Infrastructure\Bus\Locator\ConventionBasedHandlerLocator'
+
+    App\Infrastructure\Bus\Locator\ConventionBasedHandlerLocator:
         arguments:
             $container: '@service_container'
+
+    App\Infrastructure\Bus\SimpleCommandBus:
+        arguments:
+            $locator: '@App\Contract\Bus\Locator\HandlerLocatorInterface'
             $middlewares: []
 
     App\Infrastructure\Bus\Middleware\QueryCacheMiddleware:
@@ -26,7 +32,7 @@ services:
 
     App\Infrastructure\Bus\SimpleQueryBus:
         arguments:
-            $container: '@service_container'
+            $locator: '@App\Contract\Bus\Locator\HandlerLocatorInterface'
             $middlewares:
                 - '@App\Infrastructure\Bus\Middleware\QueryCacheMiddleware'
 

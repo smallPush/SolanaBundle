@@ -105,7 +105,12 @@ class FileCacheAdapter implements CacheItemPoolInterface
             'expiresAt' => $expiration,
         ];
 
-        return (bool) file_put_contents($file, serialize($data));
+        $tmpFile = $file . uniqid('.tmp', true);
+        if (file_put_contents($tmpFile, serialize($data)) === false) {
+            return false;
+        }
+
+        return rename($tmpFile, $file);
     }
 
     public function saveDeferred(CacheItemInterface $item): bool

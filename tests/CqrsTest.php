@@ -95,7 +95,10 @@ namespace App\Tests {
 
     echo "Testing Namespace Logic...\n";
 
+    use App\Infrastructure\Bus\Locator\ConventionBasedHandlerLocator;
+
     $container = new SimpleContainer();
+    $locator = new ConventionBasedHandlerLocator($container);
 
     // Command
     // App\Tests\Command\TestCommand -> App\Tests\CommandHandler\TestHandler
@@ -103,7 +106,7 @@ namespace App\Tests {
     $container->set(CmdHandler::class, $cmdHandler);
 
     $middleware = new TestCommandMiddleware();
-    $bus = new SimpleCommandBus($container, [$middleware]);
+    $bus = new SimpleCommandBus($locator, [$middleware]);
     try {
         $bus->dispatch(new TestCommand());
         if ($cmdHandler->handled && $middleware->called) {
@@ -122,7 +125,7 @@ namespace App\Tests {
     $qryHandler = new QryHandler();
     $container->set(QryHandler::class, $qryHandler);
 
-    $qBus = new SimpleQueryBus($container);
+    $qBus = new SimpleQueryBus($locator);
     try {
         $res = $qBus->ask(new TestQuery());
         if ($res === 'result') {
@@ -147,7 +150,7 @@ namespace App\Tests {
     $cacheableQryHandler = new QryCacheableHandler();
     $container->set(QryCacheableHandler::class, $cacheableQryHandler);
 
-    $qBusWithCache = new SimpleQueryBus($container, [$cacheMiddleware]);
+    $qBusWithCache = new SimpleQueryBus($locator, [$cacheMiddleware]);
 
     try {
         $query1 = new TestCacheableQuery();
