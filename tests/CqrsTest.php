@@ -74,6 +74,7 @@ namespace App\Tests {
     use App\Tests\CommandMiddleware\TestCommandMiddleware;
     use App\Infrastructure\Bus\SimpleQueryBus;
     use App\Infrastructure\Bus\Middleware\QueryCacheMiddleware;
+    use App\Infrastructure\Bus\Middleware\CommandCacheInvalidationMiddleware;
     use App\Infrastructure\Cache\FileCacheAdapter;
     use App\Tests\Command\TestCommand;
     use App\Tests\CommandHandler\TestHandler as CmdHandler;
@@ -105,12 +106,31 @@ namespace App\Tests {
     $cmdHandler = new CmdHandler();
     $container->set(CmdHandler::class, $cmdHandler);
 
+    $cacheDir = sys_get_temp_dir() . '/cqrs_test_cache';
+    $cacheAdapter = new FileCacheAdapter($cacheDir);
+    $cacheAdapter->clear();
+
+    $invalidationMiddleware = new CommandCacheInvalidationMiddleware($cacheAdapter);
     $middleware = new TestCommandMiddleware();
-    $bus = new SimpleCommandBus($locator, [$middleware]);
+
+    // Add an item to cache to test invalidation
+    $item = $cacheAdapter->getItem('test_command_cache');
+    $item->set('some_data');
+    $cacheAdapter->save($item);
+
+    $bus = new SimpleCommandBus($locator, [$middleware, $invalidationMiddleware]);
     try {
         $bus->dispatch(new TestCommand());
         if ($cmdHandler->handled && $middleware->called) {
             echo "Command OK (with Middleware)\n";
+
+            // Check if cache was cleared
+            if ($cacheAdapter->getItem('test_command_cache')->isHit()) {
+                echo "Command Failed (Cache not invalidated)\n";
+                exit(1);
+            } else {
+                echo "Command Cache Invalidation OK\n";
+            }
         } else {
             echo "Command Failed (Not Handled or Middleware skipped)\n";
             exit(1);
@@ -141,8 +161,6 @@ namespace App\Tests {
 
     echo "Testing Cache Middleware...\n";
 
-    $cacheDir = sys_get_temp_dir() . '/cqrs_test_cache';
-    $cacheAdapter = new FileCacheAdapter($cacheDir);
     $cacheAdapter->clear();
 
     $cacheMiddleware = new QueryCacheMiddleware($cacheAdapter);

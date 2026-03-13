@@ -14,7 +14,9 @@ class FileCacheAdapter implements CacheItemPoolInterface
     {
         $this->cacheDir = $cacheDir ?? sys_get_temp_dir() . '/app_cache';
         if (!is_dir($this->cacheDir)) {
-            mkdir($this->cacheDir, 0777, true);
+            if (!@mkdir($this->cacheDir, 0777, true) && !is_dir($this->cacheDir)) {
+                throw new CacheException(sprintf('Directory "%s" was not created', $this->cacheDir));
+            }
         }
     }
 
@@ -106,11 +108,11 @@ class FileCacheAdapter implements CacheItemPoolInterface
         ];
 
         $tmpFile = $file . uniqid('.tmp', true);
-        if (file_put_contents($tmpFile, serialize($data)) === false) {
+        if (@file_put_contents($tmpFile, serialize($data)) === false) {
             return false;
         }
 
-        return rename($tmpFile, $file);
+        return @rename($tmpFile, $file);
     }
 
     public function saveDeferred(CacheItemInterface $item): bool
