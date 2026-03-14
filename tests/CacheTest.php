@@ -41,4 +41,20 @@ try {
     echo "InvalidArgumentException thrown correctly for invalid key.\n";
 }
 
+try {
+    // Force a CacheException by making the directory inaccessible
+    $readOnlyDir = sys_get_temp_dir() . '/readonly_cache_test';
+    mkdir($readOnlyDir, 0444); // Read-only
+    $badCache = new FileCacheAdapter($readOnlyDir . '/nested');
+    echo "Error: Directory creation should have failed and thrown CacheException\n";
+    rmdir($readOnlyDir);
+    exit(1);
+} catch (\App\Infrastructure\Cache\CacheException $e) {
+    echo "CacheException thrown correctly for invalid directory.\n";
+    rmdir(sys_get_temp_dir() . '/readonly_cache_test');
+} catch (\Throwable $t) {
+    echo "Unexpected exception for directory failure: " . get_class($t) . "\n";
+    @rmdir(sys_get_temp_dir() . '/readonly_cache_test');
+}
+
 echo "All cache tests passed successfully.\n";

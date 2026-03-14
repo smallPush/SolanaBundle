@@ -22,10 +22,14 @@ services:
         arguments:
             $container: '@service_container'
 
+    App\Infrastructure\Bus\Middleware\CommandCacheInvalidationMiddleware:
+        arguments: ['@App\Infrastructure\Cache\FileCacheAdapter']
+
     App\Infrastructure\Bus\SimpleCommandBus:
         arguments:
             $locator: '@App\Contract\Bus\Locator\HandlerLocatorInterface'
-            $middlewares: []
+            $middlewares:
+                - '@App\Infrastructure\Bus\Middleware\CommandCacheInvalidationMiddleware'
 
     App\Infrastructure\Bus\Middleware\QueryCacheMiddleware:
         arguments: ['@App\Infrastructure\Cache\FileCacheAdapter']
