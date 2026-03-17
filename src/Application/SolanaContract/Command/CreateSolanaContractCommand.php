@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Application\Command;
+namespace App\Application\SolanaContract\Command;
 
 use App\Contract\Cqrs\CommandInterface;
 use App\Entity\SolanaContract;

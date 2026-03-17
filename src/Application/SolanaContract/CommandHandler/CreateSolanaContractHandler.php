@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Application\CommandHandler;
+namespace App\Application\SolanaContract\CommandHandler;
 
-use App\Application\Command\CreateSolanaContractCommand;
+use App\Application\SolanaContract\Command\CreateSolanaContractCommand;
 use App\Contract\Cqrs\CommandHandlerInterface;
 use App\Contract\Cqrs\CommandInterface;
 use App\Entity\SolanaContract;

@@ -12,7 +12,8 @@
         "symfony/runtime": "^7.0",
         "symfony/doctrine-bridge": "^7.0",
         "doctrine/orm": "^2.16",
-        "doctrine/doctrine-bundle": "^2.10"
+        "doctrine/doctrine-bundle": "^2.10",
+        "psr/cache": "^3.0"
     },
     "config": {
         "allow-plugins": {

@@ -41,10 +41,10 @@ services:
                 - '@App\Infrastructure\Bus\Middleware\QueryCacheMiddleware'
 
     # Make handlers public so the simple bus can locate them via container
-    App\Application\CommandHandler\:
-        resource: '../src/Application/CommandHandler/'
+    App\Application\SolanaContract\CommandHandler\:
+        resource: '../src/Application/SolanaContract/CommandHandler/'
         public: true
 
-    App\Application\QueryHandler\:
-        resource: '../src/Application/QueryHandler/'
+    App\Application\SolanaContract\QueryHandler\:
+        resource: '../src/Application/SolanaContract/QueryHandler/'
         public: true

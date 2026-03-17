@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Application\QueryHandler;
+namespace App\Application\SolanaContract\QueryHandler;
 
-use App\Application\Query\GetSolanaContractsByUserQuery;
+use App\Application\SolanaContract\Query\GetSolanaContractsByUserQuery;
 use App\Contract\Cqrs\QueryHandlerInterface;
 use App\Contract\Cqrs\QueryInterface;
 use App\DTO\PaginatedResult;
