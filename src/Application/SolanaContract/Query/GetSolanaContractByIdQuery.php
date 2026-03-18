@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Application\Query;
+namespace App\Application\SolanaContract\Query;
 
 use App\Contract\Cqrs\CacheableQueryInterface;
 

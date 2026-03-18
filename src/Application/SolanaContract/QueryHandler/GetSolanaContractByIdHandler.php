@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Application\QueryHandler;
+namespace App\Application\SolanaContract\QueryHandler;
 
-use App\Application\Query\GetSolanaContractByIdQuery;
+use App\Application\SolanaContract\Query\GetSolanaContractByIdQuery;
 use App\Contract\Cqrs\QueryHandlerInterface;
 use App\Contract\Cqrs\QueryInterface;
 use App\Repository\SolanaContractRepository;

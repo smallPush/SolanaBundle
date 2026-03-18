@@ -39,8 +39,8 @@ require_once __DIR__ . '/stubs/Doctrine/Common/Collections/Collection.php';
 require_once __DIR__ . '/stubs/Doctrine/Common/Collections/ArrayCollection.php';
 
 
-use App\Application\Query\GetSolanaContractsByUserQuery;
-use App\Application\QueryHandler\GetSolanaContractsByUserHandler;
+use App\Application\SolanaContract\Query\GetSolanaContractsByUserQuery;
+use App\Application\SolanaContract\QueryHandler\GetSolanaContractsByUserHandler;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;

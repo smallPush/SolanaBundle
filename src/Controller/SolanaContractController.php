@@ -2,10 +2,10 @@
 
 namespace App\Controller;
 
-use App\Application\Command\CreateSolanaContractCommand;
-use App\Application\Command\ValidateSolanaContractCommand;
-use App\Application\Query\GetSolanaContractByIdQuery;
-use App\Application\Query\GetSolanaContractsByUserQuery;
+use App\Application\SolanaContract\Command\CreateSolanaContractCommand;
+use App\Application\SolanaContract\Command\ValidateSolanaContractCommand;
+use App\Application\SolanaContract\Query\GetSolanaContractByIdQuery;
+use App\Application\SolanaContract\Query\GetSolanaContractsByUserQuery;
 use App\Contract\Bus\CommandBusInterface;
 use App\Contract\Bus\QueryBusInterface;
 use App\Entity\SolanaContract;
