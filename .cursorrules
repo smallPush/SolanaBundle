@@ -1,0 +1,26 @@
+### Project Overview
+This application is a Solana Contract Module for Symfony that provides an integration to interact with Solana smart contracts. It manages a `SolanaContract` entity and users with specific roles, such as Donor and Volunteer, facilitating the lifecycle and validation of contracts within the platform.
+
+### Tech Stack
+* PHP 8.2+
+* Symfony 7.3
+* Doctrine ORM 2.16
+* Webpack Encore (Asset Management)
+* Vanilla JavaScript (with `@solana/web3.js`)
+* Custom PSR-6 Cache Implementation
+
+### Project Architecture
+The application employs a bespoke Command Query Responsibility Segregation (CQRS) architectural pattern. Features are organized by Bounded Context (e.g., `src/Application/SolanaContract/Command/`) rather than purely technical concerns. The custom CQRS implementation uses `SimpleCommandBus` and `SimpleQueryBus` with middleware pipelines (onion architecture). The repository uses a non-standard Symfony directory structure, explicitly missing the `bin/console` tool and the `public/` directory. List views and pagination utilize Data Transfer Objects (DTOs) for performance optimization.
+
+### Coding Standards
+* **Typing & Naming:** PHP files enforce strict typing with explicit return types. `PascalCase` is used for classes and interfaces, while `camelCase` is used for methods and variables.
+* **Security:** Global security restricts all unauthenticated access by default. CSRF protection must be manually implemented in controllers using `CsrfTokenManagerInterface` for actions modifying state outside of standard Symfony Forms.
+* **Encapsulation:** Complex boolean logic for UI state and state transitions must be extracted from templates or controllers into helper methods directly within the relevant Entity classes (e.g., `SolanaContract`).
+* **Error Handling:** Custom exceptions implementing PSR interfaces are thrown (e.g., `InvalidArgumentException`, `CacheException`) instead of allowing standard PHP warnings during operations like file writing.
+
+### Critical AI Rules
+* **Always use the CQRS pattern:** Never inject or use `EntityManagerInterface` directly in controllers; you must always dispatch commands and ask queries through the custom buses.
+* **Never run standard CLI tools:** Do not suggest or attempt to run `bin/console`, `phpunit`, or `npm` commands, as `bin/console`, `phpunit`, and `package.json` are completely absent from the environment.
+* **Always write standalone PHP test scripts:** Because `phpunit` is unavailable, unit tests must be written as standalone PHP scripts that manually include `vendor/autoload.php` and handle assertions.
+* **Always implement manual CSRF protection:** For any controller action that modifies state without using Symfony Forms, you must manually check the CSRF token and throw an `AccessDeniedException` on failure.
+* **Always encapsulate state logic in Entities:** Keep controllers and Twig templates clean by placing any complex state transition or UI logic directly into the Entity classes.
