@@ -32,11 +32,15 @@ class FileCacheAdapter implements CacheItemPoolInterface
         $this->validateKey($key);
         $file = $this->getFilename($key);
         if (file_exists($file)) {
-            $data = unserialize(file_get_contents($file));
-            if ($data['expiresAt'] === null || $data['expiresAt'] > new \DateTimeImmutable()) {
-                return new CacheItem($key, $data['value'], true);
+            $data = @unserialize(@file_get_contents($file));
+            if ($data !== false && (is_array($data) && array_key_exists('expiresAt', $data) && array_key_exists('value', $data))) {
+                if ($data['expiresAt'] === null || $data['expiresAt'] > new \DateTimeImmutable()) {
+                    return new CacheItem($key, $data['value'], true);
+                } else {
+                    @unlink($file); // Expired
+                }
             } else {
-                unlink($file); // Expired
+                @unlink($file); // Invalid data
             }
         }
 
@@ -61,10 +65,12 @@ class FileCacheAdapter implements CacheItemPoolInterface
 
     public function clear(): bool
     {
-        $files = glob($this->cacheDir . '/*');
-        foreach ($files as $file) {
-            if (is_file($file)) {
-                unlink($file);
+        $files = @glob($this->cacheDir . '/*');
+        if (is_array($files)) {
+            foreach ($files as $file) {
+                if (is_file($file)) {
+                    @unlink($file);
+                }
             }
         }
         return true;
@@ -75,7 +81,7 @@ class FileCacheAdapter implements CacheItemPoolInterface
         $this->validateKey($key);
         $file = $this->getFilename($key);
         if (file_exists($file)) {
-            return unlink($file);
+            return @unlink($file);
         }
         return true;
     }
