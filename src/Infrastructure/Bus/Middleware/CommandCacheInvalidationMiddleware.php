@@ -4,6 +4,7 @@ namespace App\Infrastructure\Bus\Middleware;
 
 use App\Contract\Bus\CommandMiddlewareInterface;
 use App\Contract\Cqrs\CommandInterface;
+use App\Contract\Cqrs\InvalidatesCacheInterface;
 use Psr\Cache\CacheItemPoolInterface;
 
 class CommandCacheInvalidationMiddleware implements CommandMiddlewareInterface
@@ -20,9 +21,15 @@ class CommandCacheInvalidationMiddleware implements CommandMiddlewareInterface
         // Execute the command first
         $next($command);
 
-        // If the command completes without throwing an exception, clear the cache
-        // In a purely academic implementation without granular tagging, we clear the entire query cache
-        // to ensure any read models reflect the latest state.
-        $this->cache->clear();
+        // If the command completes without throwing an exception, clear or invalidate cache
+        if ($command instanceof InvalidatesCacheInterface) {
+            $keys = $command->getCacheKeysToInvalidate();
+            if (!empty($keys)) {
+                $this->cache->deleteItems($keys);
+            }
+        } else {
+            // Fallback for commands not implementing granular invalidation
+            $this->cache->clear();
+        }
     }
 }
