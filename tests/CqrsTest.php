@@ -6,7 +6,15 @@ namespace {
 
 namespace App\Tests\Command {
     use App\Contract\Cqrs\CommandInterface;
+    use App\Contract\Cqrs\InvalidatesCacheInterface;
+
     class TestCommand implements CommandInterface {}
+
+    class TestInvalidatingCommand implements InvalidatesCacheInterface {
+        public function getCacheKeysToInvalidate(): array {
+            return ['test_command_cache'];
+        }
+    }
 }
 
 namespace App\Tests\CommandHandler {
@@ -14,6 +22,13 @@ namespace App\Tests\CommandHandler {
     use App\Contract\Cqrs\CommandInterface;
 
     class TestHandler implements CommandHandlerInterface {
+        public bool $handled = false;
+        public function __invoke(CommandInterface $command): void {
+            $this->handled = true;
+        }
+    }
+
+    class TestInvalidatingHandler implements CommandHandlerInterface {
         public bool $handled = false;
         public function __invoke(CommandInterface $command): void {
             $this->handled = true;
@@ -77,7 +92,9 @@ namespace App\Tests {
     use App\Infrastructure\Bus\Middleware\CommandCacheInvalidationMiddleware;
     use App\Infrastructure\Cache\FileCacheAdapter;
     use App\Tests\Command\TestCommand;
+    use App\Tests\Command\TestInvalidatingCommand;
     use App\Tests\CommandHandler\TestHandler as CmdHandler;
+    use App\Tests\CommandHandler\TestInvalidatingHandler;
     use App\Tests\Query\TestQuery;
     use App\Tests\Query\TestCacheableQuery;
     use App\Tests\QueryHandler\TestHandler as QryHandler;
@@ -137,6 +154,40 @@ namespace App\Tests {
         }
     } catch (\Throwable $e) {
         echo "Command Error: " . $e->getMessage() . "\n";
+        exit(1);
+    }
+
+    // Granular invalidation
+    $invalidatingHandler = new TestInvalidatingHandler();
+    $container->set(TestInvalidatingHandler::class, $invalidatingHandler);
+
+    $cacheAdapter->clear();
+    $item1 = $cacheAdapter->getItem('test_command_cache');
+    $item1->set('some_data');
+    $cacheAdapter->save($item1);
+
+    $item2 = $cacheAdapter->getItem('another_cache_key');
+    $item2->set('other_data');
+    $cacheAdapter->save($item2);
+
+    try {
+        $bus->dispatch(new TestInvalidatingCommand());
+        if ($invalidatingHandler->handled) {
+            if ($cacheAdapter->getItem('test_command_cache')->isHit()) {
+                echo "Granular Invalidation Failed (Target key not invalidated)\n";
+                exit(1);
+            } elseif (!$cacheAdapter->getItem('another_cache_key')->isHit()) {
+                echo "Granular Invalidation Failed (Other key cleared unexpectedly)\n";
+                exit(1);
+            } else {
+                echo "Granular Cache Invalidation OK\n";
+            }
+        } else {
+            echo "Granular Invalidation Failed (Not Handled)\n";
+            exit(1);
+        }
+    } catch (\Throwable $e) {
+        echo "Granular Invalidation Error: " . $e->getMessage() . "\n";
         exit(1);
     }
 

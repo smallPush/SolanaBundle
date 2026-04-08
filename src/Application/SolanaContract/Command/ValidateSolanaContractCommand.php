@@ -2,11 +2,11 @@
 
 namespace App\Application\SolanaContract\Command;
 
-use App\Contract\Cqrs\CommandInterface;
+use App\Contract\Cqrs\InvalidatesCacheInterface;
 use App\Entity\SolanaContract;
 use App\Entity\User;
 
-class ValidateSolanaContractCommand implements CommandInterface
+class ValidateSolanaContractCommand implements InvalidatesCacheInterface
 {
     private SolanaContract $contract;
     private User $validator;
@@ -25,5 +25,12 @@ class ValidateSolanaContractCommand implements CommandInterface
     public function getValidator(): User
     {
         return $this->validator;
+    }
+
+    public function getCacheKeysToInvalidate(): array
+    {
+        return [
+            'solana_contract_' . $this->contract->getId()
+        ];
     }
 }
