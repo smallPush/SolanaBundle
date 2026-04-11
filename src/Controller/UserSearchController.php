@@ -2,8 +2,9 @@
 
 namespace App\Controller;
 
+use App\Application\User\Query\SearchUsersQuery;
+use App\Contract\Bus\QueryBusInterface;
 use App\Entity\User;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -15,7 +16,7 @@ class UserSearchController extends AbstractController
 {
     #[Route('/search', name: 'api_users_search', methods: ['GET'])]
     #[IsGranted('ROLE_USER')]
-    public function search(Request $request, EntityManagerInterface $entityManager): JsonResponse
+    public function search(Request $request, QueryBusInterface $queryBus): JsonResponse
     {
         $q = $request->query->get('q', '');
 
@@ -23,12 +24,7 @@ class UserSearchController extends AbstractController
             return new JsonResponse([], 200);
         }
 
-        $users = $entityManager->getRepository(User::class)->createQueryBuilder('u')
-            ->where('u.email LIKE :q')
-            ->setParameter('q', '%' . $q . '%')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult();
+        $users = $queryBus->ask(new SearchUsersQuery($q));
 
         $data = array_map(function (User $user) {
             return [
