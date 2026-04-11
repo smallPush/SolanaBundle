@@ -48,3 +48,7 @@ services:
     App\Application\SolanaContract\QueryHandler\:
         resource: '../src/Application/SolanaContract/QueryHandler/'
         public: true
+
+    App\Application\User\QueryHandler\:
+        resource: '../src/Application/User/QueryHandler/'
+        public: true
