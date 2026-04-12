@@ -2,15 +2,16 @@
 
 namespace App\Form\DataTransformer;
 
+use App\Application\User\Query\GetUserByEmailQuery;
+use App\Contract\Bus\QueryBusInterface;
 use App\Entity\User;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Form\DataTransformerInterface;
 use Symfony\Component\Form\Exception\TransformationFailedException;
 
 class EmailToUserTransformer implements DataTransformerInterface
 {
     public function __construct(
-        private EntityManagerInterface $entityManager,
+        private QueryBusInterface $queryBus,
     ) {
     }
 
@@ -41,9 +42,7 @@ class EmailToUserTransformer implements DataTransformerInterface
             return null;
         }
 
-        $user = $this->entityManager
-            ->getRepository(User::class)
-            ->findOneBy(['email' => $email]);
+        $user = $this->queryBus->ask(new GetUserByEmailQuery($email));
 
         if (null === $user) {
             // causes a validation error
