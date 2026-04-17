@@ -67,6 +67,7 @@ class ComposerStaticInit52c2f39714f5a5b257977be26801ea13
         ),
         'P' =>
         array (
+            'Psr\\SimpleCache\\' => 16,
             'Psr\\Log\\' => 8,
             'Psr\\EventDispatcher\\' => 20,
             'Psr\\Container\\' => 14,
@@ -259,6 +260,10 @@ class ComposerStaticInit52c2f39714f5a5b257977be26801ea13
         'Symfony\\Bridge\\Doctrine\\' =>
         array (
             0 => __DIR__ . '/..' . '/symfony/doctrine-bridge',
+        ),
+        'Psr\\SimpleCache\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/psr/simple-cache/src',
         ),
         'Psr\\Log\\' =>
         array (
