@@ -14,7 +14,6 @@ services:
     App\Contract\Bus\CommandBusInterface: '@App\Infrastructure\Bus\SimpleCommandBus'
     App\Contract\Bus\QueryBusInterface: '@App\Infrastructure\Bus\SimpleQueryBus'
     Psr\Cache\CacheItemPoolInterface: '@App\Infrastructure\Cache\FileCacheAdapter'
-    Psr\SimpleCache\CacheInterface: '@App\Infrastructure\Cache\SimpleFileCacheAdapter'
 
     # Infrastructure
     App\Contract\Bus\Locator\HandlerLocatorInterface: '@App\Infrastructure\Bus\Locator\ConventionBasedHandlerLocator'
@@ -24,8 +23,8 @@ services:
             $container: '@service_container'
 
     App\Infrastructure\Bus\Middleware\CommandCacheInvalidationMiddleware:
-        # Using PSR-16 simple cache adapter.
-        arguments: ['@App\Infrastructure\Cache\SimpleFileCacheAdapter']
+        # Using PSR-6 cache adapter.
+        arguments: ['@App\Infrastructure\Cache\FileCacheAdapter']
 
     App\Infrastructure\Bus\SimpleCommandBus:
         arguments:
@@ -34,8 +33,8 @@ services:
                 - '@App\Infrastructure\Bus\Middleware\CommandCacheInvalidationMiddleware'
 
     App\Infrastructure\Bus\Middleware\QueryCacheMiddleware:
-        # Using PSR-16 simple cache adapter.
-        arguments: ['@App\Infrastructure\Cache\SimpleFileCacheAdapter']
+        # Using PSR-6 cache adapter.
+        arguments: ['@App\Infrastructure\Cache\FileCacheAdapter']
 
     App\Infrastructure\Bus\SimpleQueryBus:
         arguments:
